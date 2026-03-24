@@ -49,17 +49,15 @@ public fun GeometryData.toJts(geometryFactory: GeometryFactory = GeometryFactory
         GeometryType.GeometryCollection -> geometryFactory.createGeometryCollection(
             parts.map { it.toJts(geometryFactory) }.toTypedArray(),
         )
-
-        else -> throw FlatGeobufException("JTS adapter does not yet support $type")
     }
 
 public fun Geometry.toGeometryData(): GeometryData =
     when (this) {
         is Point -> GeometryData(
             type = GeometryType.Point,
-            xy = flatXy(listOf(coordinateOrNull())),
-            z = flatOrdinate(listOf(coordinateOrNull())) { coordinate -> coordinate?.z },
-            m = flatOrdinate(listOf(coordinateOrNull())) { coordinate -> coordinate?.m },
+            xy = flatXy(listOf(coordinate)),
+            z = flatOrdinate(listOf(coordinate)) { current -> current?.z },
+            m = flatOrdinate(listOf(coordinate)) { current -> current?.m },
         )
 
         is MultiPoint -> GeometryData(
@@ -201,7 +199,7 @@ private fun MultiLineString.multiLineStringData(): GeometryData {
 private fun Polygon.polygonData(): GeometryData {
     val rings = buildList {
         add(exteriorRing)
-        repeat(numInteriorRing) { index -> add(interiorRingN(index)) }
+        repeat(numInteriorRing) { index -> add(getInteriorRingN(index)) }
     }
     val coordinates = rings.flatMap { it.coordinates.toList() }
     val ends = IntArray(rings.size)

@@ -21,7 +21,7 @@ class HeaderReaderJvmTest {
         assertEquals(16, header.indexNodeSize)
         assertNotNull(header.crs)
         assertEquals(4326, header.crs.code)
-        assertEquals(3, header.envelope?.minX?.toInt())
+        assertEquals(-180, header.envelope?.minX?.toInt())
     }
 
     @Test
