@@ -136,6 +136,10 @@ necessary.
 
 See [this](https://github.com/flatgeobuf/flatgeobuf/tree/master/examples/node) example for a minimal how to depend on and use the flatgeobuf npm package.
 
+### Kotlin Multiplatform
+
+* [Module README](src/kotlin/README.md)
+
 ## FAQ
 
 ### Why not use WKB geometry encoding?
@@ -165,4 +169,3 @@ See [this](https://github.com/flatgeobuf/flatgeobuf/issues/244) issue for root c
 ### Does FlatGeobuf support mixing features with and without geometry with spatial index?
 
 Currently it likely does not but could in the future, see [this](https://github.com/flatgeobuf/flatgeobuf/discussions/260) issue.
-
