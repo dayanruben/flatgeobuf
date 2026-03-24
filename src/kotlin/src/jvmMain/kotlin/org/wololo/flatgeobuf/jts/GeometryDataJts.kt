@@ -30,11 +30,21 @@ public fun GeometryData.toJts(geometryFactory: GeometryFactory = GeometryFactory
 
         GeometryType.MultiPoint -> geometryFactory.createMultiPointFromCoords(coordinates().toTypedArray())
         GeometryType.LineString -> geometryFactory.createLineString(coordinates().toTypedArray())
+        GeometryType.CircularString -> geometryFactory.createLineString(coordinates().toTypedArray())
+        GeometryType.Curve -> geometryFactory.createLineString(coordinates().toTypedArray())
         GeometryType.MultiLineString -> geometryFactory.createMultiLineString(lineStrings(geometryFactory))
+        GeometryType.CompoundCurve -> geometryFactory.createMultiLineString(curveParts(geometryFactory))
+        GeometryType.MultiCurve -> geometryFactory.createMultiLineString(curveParts(geometryFactory))
         GeometryType.Polygon -> polygon(geometryFactory)
+        GeometryType.CurvePolygon -> polygon(geometryFactory)
+        GeometryType.Surface -> polygon(geometryFactory)
+        GeometryType.Triangle -> polygon(geometryFactory)
         GeometryType.MultiPolygon -> geometryFactory.createMultiPolygon(
             parts.map { it.toJts(geometryFactory) as Polygon }.toTypedArray(),
         )
+        GeometryType.MultiSurface -> geometryFactory.createMultiPolygon(surfaceParts(geometryFactory))
+        GeometryType.PolyhedralSurface -> geometryFactory.createMultiPolygon(surfaceParts(geometryFactory))
+        GeometryType.Tin -> geometryFactory.createMultiPolygon(surfaceParts(geometryFactory))
 
         GeometryType.GeometryCollection -> geometryFactory.createGeometryCollection(
             parts.map { it.toJts(geometryFactory) }.toTypedArray(),
@@ -109,6 +119,42 @@ private fun GeometryData.lineStrings(geometryFactory: GeometryFactory): Array<Li
     }
     return lineStrings.toTypedArray()
 }
+
+private fun GeometryData.curveParts(geometryFactory: GeometryFactory): Array<LineString> =
+    when {
+        parts.isNotEmpty() -> parts.flatMap { part ->
+            when (part.type) {
+                GeometryType.LineString,
+                GeometryType.CircularString,
+                GeometryType.Curve,
+                GeometryType.CompoundCurve,
+                GeometryType.MultiLineString,
+                GeometryType.MultiCurve,
+                -> part.lineStrings(geometryFactory).asList()
+
+                else -> listOf(geometryFactory.createLineString(part.coordinates().toTypedArray()))
+            }
+        }.toTypedArray()
+
+        else -> lineStrings(geometryFactory)
+    }
+
+private fun GeometryData.surfaceParts(geometryFactory: GeometryFactory): Array<Polygon> =
+    when {
+        parts.isNotEmpty() -> parts.map { part ->
+            when (part.type) {
+                GeometryType.Polygon,
+                GeometryType.CurvePolygon,
+                GeometryType.Surface,
+                GeometryType.Triangle,
+                -> part.polygon(geometryFactory)
+
+                else -> throw FlatGeobufException("Cannot map $type part ${part.type} to a JTS surface")
+            }
+        }.toTypedArray()
+
+        else -> arrayOf(polygon(geometryFactory))
+    }
 
 private fun GeometryData.polygon(geometryFactory: GeometryFactory): Polygon {
     val coordinates = coordinates()
