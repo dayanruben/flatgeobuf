@@ -10,6 +10,10 @@ The first implementation slice focuses on portable core pieces that can live in 
 * FlatBuffer table access for the FlatGeobuf header schema
 * Header metadata parsing
 * Packed Hilbert R-tree parsing, searching, and binary roundtripping
+* `ByteArray`-backed `FgbReader` with `selectAll()` and `selectBbox()`
+* Generic geometry and typed property decoding
+* `FgbWriter` with optional packed R-tree generation
+* JVM JTS adapters for the shared `GeometryData` model
 
 The module is intentionally keeping JVM-only dependencies out of the shared API surface so it can grow toward JVM and Native support from the same core.
 
@@ -28,5 +32,5 @@ From this directory:
 ## Next steps
 
 * Add portable feature and geometry decoding
-* Add a full `FgbReader` API over the common core
-* Add writer support and optional JVM geometry adapters
+* Add streaming and non-`ByteArray` reader APIs
+* Add broader geometry coverage beyond the core JTS-supported types

@@ -29,6 +29,20 @@ internal fun ByteArray.readLongLe(offset: Int): Long {
 
 internal fun ByteArray.readDoubleLe(offset: Int): Double = Double.fromBits(readLongLe(offset))
 
+internal fun ByteArray.writeShortLe(offset: Int, value: Short) {
+    requireRange(offset, 2)
+    this[offset] = (value.toInt() and 0xff).toByte()
+    this[offset + 1] = ((value.toInt() ushr 8) and 0xff).toByte()
+}
+
+internal fun ByteArray.writeIntLe(offset: Int, value: Int) {
+    requireRange(offset, 4)
+    this[offset] = (value and 0xff).toByte()
+    this[offset + 1] = ((value ushr 8) and 0xff).toByte()
+    this[offset + 2] = ((value ushr 16) and 0xff).toByte()
+    this[offset + 3] = ((value ushr 24) and 0xff).toByte()
+}
+
 internal fun ByteArray.writeLongLe(offset: Int, value: Long) {
     requireRange(offset, 8)
     for (index in 0 until 8) {

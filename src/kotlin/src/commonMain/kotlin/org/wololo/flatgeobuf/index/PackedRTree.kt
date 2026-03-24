@@ -117,21 +117,20 @@ public class PackedRTree private constructor(
 
         public fun hilbertSortNodeItems(nodeItems: MutableList<NodeItem>) {
             val extent = calcExtent(nodeItems)
-            val minX = extent.minX
-            val minY = extent.minY
-            val width = extent.width()
-            val height = extent.height()
             nodeItems.sortByDescending {
-                hilbertForNodeItem(
-                    nodeItem = it,
-                    hilbertMax = HILBERT_MAX,
-                    minX = minX,
-                    minY = minY,
-                    width = width,
-                    height = height,
-                )
+                hilbertValue(it, extent)
             }
         }
+
+        internal fun hilbertValue(nodeItem: NodeItem, extent: NodeItem): Int =
+            hilbertForNodeItem(
+                nodeItem = nodeItem,
+                hilbertMax = HILBERT_MAX,
+                minX = extent.minX,
+                minY = extent.minY,
+                width = extent.width(),
+                height = extent.height(),
+            )
 
         public fun indexSize(numItems: Long, nodeSize: Int): Int {
             if (numItems <= 0) return 0

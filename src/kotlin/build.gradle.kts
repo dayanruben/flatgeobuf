@@ -26,6 +26,9 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
+        jvmMain.dependencies {
+            implementation("org.locationtech.jts:jts-core:1.20.0")
+        }
         jvmTest.dependencies {
             implementation(kotlin("test-junit"))
         }
