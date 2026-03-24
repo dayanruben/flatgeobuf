@@ -27,6 +27,9 @@ bin/
 .settings
 .classpath
 .project
+/src/kotlin/.gradle
+/src/kotlin/build
+/src/kotlin/.kotlin
 
 # c++ tester
 testcpp
