@@ -21,7 +21,11 @@ public object FlatGeobuf {
 
     public fun readHeader(bytes: ByteArray): HeaderMeta = HeaderReader.read(bytes)
 
+    public suspend fun readHeader(source: AsyncByteRangeSource): HeaderMeta = AsyncFgbReader.readHeader(source)
+
     public fun open(bytes: ByteArray): FgbReader = FgbReader.open(bytes)
+
+    public suspend fun open(source: AsyncByteRangeSource): AsyncFgbReader = AsyncFgbReader.open(source)
 
     public fun searchIndex(
         bytes: ByteArray,

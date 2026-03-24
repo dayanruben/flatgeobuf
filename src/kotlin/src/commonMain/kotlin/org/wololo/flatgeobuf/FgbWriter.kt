@@ -11,6 +11,24 @@ public object FgbWriter {
         includeIndex: Boolean = true,
         indexNodeSize: Int = PackedRTree.DEFAULT_NODE_SIZE,
     ): ByteArray {
+        val sink = BufferingWriteSink()
+        writeTo(
+            sink = sink,
+            header = header,
+            features = features,
+            includeIndex = includeIndex,
+            indexNodeSize = indexNodeSize,
+        )
+        return sink.toByteArray()
+    }
+
+    public fun writeTo(
+        sink: FgbWriteSink,
+        header: HeaderMeta,
+        features: List<FgbFeature>,
+        includeIndex: Boolean = true,
+        indexNodeSize: Int = PackedRTree.DEFAULT_NODE_SIZE,
+    ) {
         if (includeIndex && features.any { it.geometry == null }) {
             throw FlatGeobufException("Indexed writes require geometry on all features")
         }
@@ -80,23 +98,10 @@ public object FgbWriter {
         )
         val headerBytes = FeatureEncoder.encodeHeader(outputHeader)
 
-        val totalSize = FlatGeobuf.MAGIC_BYTES.size +
-            headerBytes.size +
-            indexBytes.size +
-            featureBytes.sumOf { it.size }
-        val bytes = ByteArray(totalSize)
-        var offset = 0
-        FlatGeobuf.MAGIC_BYTES.copyInto(bytes, offset)
-        offset += FlatGeobuf.MAGIC_BYTES.size
-        headerBytes.copyInto(bytes, offset)
-        offset += headerBytes.size
-        indexBytes.copyInto(bytes, offset)
-        offset += indexBytes.size
-        featureBytes.forEach { feature ->
-            feature.copyInto(bytes, offset)
-            offset += feature.size
-        }
-        return bytes
+        sink.write(FlatGeobuf.MAGIC_BYTES)
+        sink.write(headerBytes)
+        if (indexBytes.isNotEmpty()) sink.write(indexBytes)
+        featureBytes.forEach(sink::write)
     }
 
     private fun hasDimension(geometry: GeometryData?, predicate: (GeometryData) -> Boolean): Boolean {
@@ -129,4 +134,24 @@ public object FgbWriter {
         val columns: List<ColumnMeta>,
         val bounds: NodeItem?,
     )
+
+    private class BufferingWriteSink : FgbWriteSink {
+        private val chunks = mutableListOf<ByteArray>()
+        private var size = 0
+
+        override fun write(bytes: ByteArray) {
+            chunks += bytes
+            size += bytes.size
+        }
+
+        fun toByteArray(): ByteArray {
+            val output = ByteArray(size)
+            var offset = 0
+            chunks.forEach { chunk ->
+                chunk.copyInto(output, offset)
+                offset += chunk.size
+            }
+            return output
+        }
+    }
 }
