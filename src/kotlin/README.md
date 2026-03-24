@@ -11,6 +11,8 @@ The first implementation slice focuses on portable core pieces that can live in 
 * Header metadata parsing
 * Packed Hilbert R-tree parsing, searching, and binary roundtripping
 * `ByteArray`-backed `FgbReader` with `selectAll()` and `selectBbox()`
+* JVM `Path`, `File`, and `InputStream` reader entry points
+* JVM sequential streaming reader for feature iteration without full in-memory loading
 * Generic geometry and typed property decoding
 * `FgbWriter` with optional packed R-tree generation
 * JVM JTS adapters for the shared `GeometryData` model
@@ -31,6 +33,6 @@ From this directory:
 
 ## Next steps
 
-* Add portable feature and geometry decoding
-* Add streaming and non-`ByteArray` reader APIs
-* Add broader geometry coverage beyond the core JTS-supported types
+* Add async/network-oriented reader APIs
+* Add write-side streaming support
+* Add higher-level adapters beyond JVM JTS
