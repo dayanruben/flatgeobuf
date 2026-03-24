@@ -51,6 +51,54 @@ class HeaderReaderJvmTest {
         assertTrue(!header.hasIndex)
     }
 
+    @Test
+    fun selectsAllFeaturesAndDecodesProperties() {
+        val reader = FlatGeobuf.open(fixtureBytes("countries.fgb"))
+
+        val features = reader.selectAll().toList()
+
+        assertEquals(179, features.size)
+        val firstWithName = features.firstOrNull {
+            it.properties["name"] is PropertyValue.StringValue
+        }
+        assertNotNull(firstWithName)
+        val name = (firstWithName.properties["name"] as PropertyValue.StringValue).value
+        assertTrue(name.isNotBlank())
+        assertNotNull(firstWithName.geometry)
+        assertTrue(hasCoordinates(firstWithName.geometry))
+    }
+
+    @Test
+    fun selectsBboxUsingIndexAndDecodesAustralia() {
+        val reader = FlatGeobuf.open(fixtureBytes("countries.fgb"))
+
+        val matches = reader.selectBbox(
+            minX = 134.0,
+            minY = -25.5,
+            maxX = 134.2,
+            maxY = -25.3,
+        ).toList()
+
+        assertEquals(1, matches.size)
+        val name = (matches.single().properties["name"] as PropertyValue.StringValue).value
+        assertEquals("Australia", name)
+    }
+
+    @Test
+    fun selectsAllWhenFeatureCountIsUnknown() {
+        val reader = FlatGeobuf.open(fixtureBytes("unknown_feature_count.fgb"))
+
+        val features = reader.selectAll().toList()
+
+        assertTrue(features.isNotEmpty())
+    }
+
     private fun fixtureBytes(name: String): ByteArray =
         Files.readAllBytes(Path.of("..", "..", "test", "data", name).normalize())
+
+    private fun hasCoordinates(geometry: GeometryData?): Boolean {
+        if (geometry == null) return false
+        if (geometry.xy.isNotEmpty()) return true
+        return geometry.parts.any(::hasCoordinates)
+    }
 }

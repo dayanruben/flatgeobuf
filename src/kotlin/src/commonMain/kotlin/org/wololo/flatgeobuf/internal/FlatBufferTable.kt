@@ -32,6 +32,30 @@ internal class FlatBufferTable(
         return DoubleArray(length) { index -> bytes.readDoubleLe(vectorDataStart + (index * 8)) }
     }
 
+    fun intVector(fieldOffset: Int): IntArray? {
+        val field = field(fieldOffset) ?: return null
+        val vectorStart = bytes.vectorStart(field)
+        val length = bytes.readIntLe(vectorStart)
+        val vectorDataStart = vectorStart + VECTOR_LENGTH_PREFIX_BYTES
+        return IntArray(length) { index -> bytes.readIntLe(vectorDataStart + (index * 4)) }
+    }
+
+    fun longVector(fieldOffset: Int): LongArray? {
+        val field = field(fieldOffset) ?: return null
+        val vectorStart = bytes.vectorStart(field)
+        val length = bytes.readIntLe(vectorStart)
+        val vectorDataStart = vectorStart + VECTOR_LENGTH_PREFIX_BYTES
+        return LongArray(length) { index -> bytes.readLongLe(vectorDataStart + (index * 8)) }
+    }
+
+    fun byteVector(fieldOffset: Int): ByteArray? {
+        val field = field(fieldOffset) ?: return null
+        val vectorStart = bytes.vectorStart(field)
+        val length = bytes.readIntLe(vectorStart)
+        val vectorDataStart = vectorStart + VECTOR_LENGTH_PREFIX_BYTES
+        return bytes.copyOfRange(vectorDataStart, vectorDataStart + length)
+    }
+
     fun table(fieldOffset: Int): FlatBufferTable? =
         field(fieldOffset)?.let { field -> FlatBufferTable(bytes, field + bytes.readIntLe(field)) }
 

@@ -1,8 +1,5 @@
 package org.wololo.flatgeobuf.internal
 
-import org.wololo.flatgeobuf.ColumnMeta
-import org.wololo.flatgeobuf.ColumnType
-import org.wololo.flatgeobuf.CrsMeta
 import org.wololo.flatgeobuf.Envelope
 import org.wololo.flatgeobuf.FlatGeobuf
 import org.wololo.flatgeobuf.FlatGeobufException
@@ -39,12 +36,8 @@ internal object HeaderReader {
             tableStart = ROOT_OFFSET_LOCATION + bytes.readIntLe(ROOT_OFFSET_LOCATION),
         )
 
-        val columns = buildList {
-            repeat(headerTable.tableVectorLength(18)) { index ->
-                add(readColumn(headerTable.tableVector(18, index)))
-            }
-        }
-        val crs = headerTable.table(24)?.let(::readCrs)
+        val columns = SchemaReaders.readColumns(headerTable, 18)
+        val crs = headerTable.table(24)?.let(SchemaReaders::readCrs)
         val envelope = headerTable.doubleVector(6)?.takeIf { it.size == 4 }?.let {
             Envelope(
                 minX = it[0],
@@ -85,28 +78,4 @@ internal object HeaderReader {
         )
     }
 
-    private fun readColumn(columnTable: FlatBufferTable): ColumnMeta =
-        ColumnMeta(
-            name = columnTable.string(4) ?: throw FlatGeobufException("Column name is required"),
-            type = ColumnType.fromWireValue(columnTable.ubyte(6)),
-            title = columnTable.string(8),
-            description = columnTable.string(10),
-            width = columnTable.int(12, defaultValue = -1),
-            precision = columnTable.int(14, defaultValue = -1),
-            scale = columnTable.int(16, defaultValue = -1),
-            nullable = columnTable.bool(18, defaultValue = true),
-            unique = columnTable.bool(20),
-            primaryKey = columnTable.bool(22),
-            metadata = columnTable.string(24),
-        )
-
-    private fun readCrs(crsTable: FlatBufferTable): CrsMeta =
-        CrsMeta(
-            org = crsTable.string(4),
-            code = crsTable.int(6),
-            name = crsTable.string(8),
-            description = crsTable.string(10),
-            wkt = crsTable.string(12),
-            codeString = crsTable.string(14),
-        )
 }
